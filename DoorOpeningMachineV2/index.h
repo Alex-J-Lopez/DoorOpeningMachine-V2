@@ -21,15 +21,16 @@ const char Main_Page[] PROGMEM = R"===(
             button {
                 border-radius: 5px;
                 background-color: white;
-                padding: 5vh 5vw 5vh 5vw;
+                padding: 7vh 5vw 7vh 5vw;
                 display: inline-block;
+                font-size: 3vh;
             }
         </style>
     </head>
     <body>
         <h1 id="title">308 Door Control</h1>
         <section>
-            <a href="/doorCycle"><button>Open Door</button></a>
+            <a href="/doorCycle"><button>Cycle Door</button></a>
             <a href="/holdOpen"><button>Hold Open</button></a>
         </section>
     </body>

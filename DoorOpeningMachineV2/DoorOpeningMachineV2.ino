@@ -47,23 +47,26 @@ void closeDoor(){
 
 void handleRoot(){
   server.send(200, "text/html", root);
+  lcd.clear(); lcd.print("R308.local");
+  lcd.setCursor(0, 1); lcd.print(WiFi.localIP());
 }
 
 void doorCycleOnClick(){
   server.send(200, "text/html", root); //Send root page to the client.
   lcd.clear(); lcd.print("Opening Door"); //Display that the door is opening on the LCD Screen.
   if(!isOpen){                            //Check if the door is already open.
-    openDoor();                            //Run the openDoor() method to open the door. 
+    openDoor();                            //Run the openDoor() method to open the door.
+    delay(5000);                         //Hold door open for 5 seconds.
   }
   lcd.clear(); lcd.print("Open");         //Display that the door is open on the LCD Screen.
-  delay(5000);                         //Hold door open for 5 seconds.
   lcd.clear(); lcd.print("Closing Door"); //Display that the door is closing.
   if(isOpen){                           //Check if the door is open.    
     closeDoor();                        //Run the closeDoor() method to close the door.
   }
   lcd.clear(); lcd.print("Closed");     //Display that the door is closed.
   delay(1000);                            //Wait 1 second to allow for previous message to be read.
-  lcd.clear(); lcd.print("Idle");       //Display that the machine is idle on the LCD Screen. 
+  lcd.clear(); lcd.print("R308.local");
+  lcd.setCursor(0, 1); lcd.print(WiFi.localIP());
 }
 
 void doorHoldOpenOnClick(){
@@ -73,7 +76,7 @@ void doorHoldOpenOnClick(){
     openDoor();                           //Run the openDoor() method to open the door.
   }
   lcd.clear(); lcd.print("Door Open");
-  lcd.setCursor(0,1); lcd.print("Holding");  
+  lcd.setCursor(0,1); lcd.print("Holding");
 }
 
 void setup() {
@@ -102,13 +105,15 @@ void setup() {
   lcd.print("IP: ");
   lcd.print(WiFi.localIP());
 
-  MDNS.begin("r308", WiFi.localIP());
+  MDNS.begin("R308", WiFi.localIP());
 
   server.on("/", handleRoot);
   server.on("/doorCycle", doorCycleOnClick);
   server.on("/holdOpen", doorHoldOpenOnClick);
   server.begin();
   MDNS.addService("http", "tcp", 80);
+  lcd.clear(); lcd.print("R308.local");
+  lcd.setCursor(0, 1); lcd.print(WiFi.localIP());
 }
   
 void loop() {  
