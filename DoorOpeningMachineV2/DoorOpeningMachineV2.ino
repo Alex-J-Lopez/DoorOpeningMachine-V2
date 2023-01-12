@@ -1,10 +1,15 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <WiFiClient.h>
+#include <ESP8266mDNS.h>
 #include <LiquidCrystal.h>
+#include "index.h"
 
-const char* ssid = "Room308";
-const char* password = "notroom308";
+const char* ssid = "VTOW-Res308-2.4ghz";
+const char* password = "relentless49rpc45";
 
+
+const String root = Main_Page;
 const int stepsToLatch = 169;
 boolean isOpen = false;
 
@@ -15,7 +20,8 @@ const int stepPin = 5; //Pin for sending single step signal
 //LCD object instance and pins
 LiquidCrystal lcd(1, 3, 2, 13, 12, 14);
 
-WiFiServer Server(80);
+//Create web server instance
+ESP8266WebServer server(80);
 
 void openDoor(){
   digitalWrite(dirPin, 1);
@@ -43,7 +49,7 @@ void handleRoot(){
   server.send(200, "text/html", root);
 }
 
-void doorCycleOneOnClick(){
+void doorCycleOnClick(){
   server.send(200, "text/html", root); //Send root page to the client.
   lcd.clear(); lcd.print("Opening Door"); //Display that the door is opening on the LCD Screen.
   if(!isOpen){                            //Check if the door is already open.
@@ -71,7 +77,7 @@ void doorHoldOpenOnClick(){
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   //Set up step and directions pins to output mode.
   pinMode(dirPin, OUTPUT);
@@ -79,20 +85,33 @@ void setup() {
 
   lcd.begin(16, 2);
   lcd.print("Start Up");
+  Serial.println("Start Up");
 
-  //Set up AP
-  WiFi.softAP(ssid, password);
+  //connect to wifi
+  WiFi.begin(ssid, password);
   lcd.setCursor(0, 1);
-  lcd.print("AP: On");
+  lcd.print("STA: On");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
   lcd.print(", Online");
   lcd.setCursor(0, 0);
+  Serial.println(WiFi.localIP());
+  lcd.clear();
+  lcd.print("IP: ");
+  lcd.print(WiFi.localIP());
+
+  MDNS.begin("r308", WiFi.localIP());
 
   server.on("/", handleRoot);
   server.on("/doorCycle", doorCycleOnClick);
   server.on("/holdOpen", doorHoldOpenOnClick);
-  Server.begin();
+  server.begin();
+  MDNS.addService("http", "tcp", 80);
 }
   
-void loop() {
+void loop() {  
+  MDNS.update();
   server.handleClient();
 }
