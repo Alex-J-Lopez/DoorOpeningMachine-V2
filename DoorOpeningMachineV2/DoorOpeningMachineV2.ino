@@ -10,7 +10,7 @@ const char* password = "relentless49rpc45";
 
 
 const String root = Main_Page;
-const int stepsToLatch = 169;
+const int stepsToLatch = 241;
 boolean isOpen = false;
 
 //Pin Declaration
@@ -23,26 +23,19 @@ LiquidCrystal lcd(1, 3, 2, 13, 12, 14);
 //Create web server instance
 ESP8266WebServer server(80);
 
-void openDoor(){
-  digitalWrite(dirPin, 1);
+void cycleDoor(int direction){
+  digitalWrite(dirPin, direction);
   for(int i = 0; i<stepsToLatch; i++){
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(1000);
     digitalWrite(stepPin, LOW);
     delayMicroseconds(1000);
   }
-  isOpen = true;
-}
-
-void closeDoor(){
-  digitalWrite(dirPin, 0);
-  for(int i = 0; i<stepsToLatch; i++){
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(1000);
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(1000);
+  if(direction == 1){
+    isOpen = true;
+  } else if(direction == 0){
+    isOpen = false;
   }
-  isOpen = false;
 }
 
 void handleRoot(){
@@ -55,13 +48,13 @@ void doorCycleOnClick(){
   server.send(200, "text/html", root); //Send root page to the client.
   lcd.clear(); lcd.print("Opening Door"); //Display that the door is opening on the LCD Screen.
   if(!isOpen){                            //Check if the door is already open.
-    openDoor();                            //Run the openDoor() method to open the door.
+    cycleDoor(1);                            //Run the openDoor() method to open the door.
     delay(5000);                         //Hold door open for 5 seconds.
   }
   lcd.clear(); lcd.print("Open");         //Display that the door is open on the LCD Screen.
   lcd.clear(); lcd.print("Closing Door"); //Display that the door is closing.
   if(isOpen){                           //Check if the door is open.    
-    closeDoor();                        //Run the closeDoor() method to close the door.
+    cycleDoor(0);                        //Run the closeDoor() method to close the door.
   }
   lcd.clear(); lcd.print("Closed");     //Display that the door is closed.
   delay(1000);                            //Wait 1 second to allow for previous message to be read.
@@ -73,10 +66,17 @@ void doorHoldOpenOnClick(){
   server.send(200, "text/html", root);
   lcd.clear(); lcd.print("Opening Door"); //Display that the door is opening.
   if(!isOpen){                            //Check if the door is alreay open.
-    openDoor();                           //Run the openDoor() method to open the door.
+    cycleDoor(1);                           //Run the openDoor() method to open the door.
+    lcd.clear(); lcd.print("Door Open");
+    lcd.setCursor(0,1); lcd.print("Holding");
+  } else if (isOpen){
+    lcd.clear(); lcd.print("Closing Door");
+    cycleDoor(0);
+    lcd.clear(); lcd.print("Closed");     //Display that the door is closed.
+    delay(1000);                            //Wait 1 second to allow for previous message to be read.
+    lcd.clear(); lcd.print("R308.local");
+    lcd.setCursor(0, 1); lcd.print(WiFi.localIP());
   }
-  lcd.clear(); lcd.print("Door Open");
-  lcd.setCursor(0,1); lcd.print("Holding");
 }
 
 void setup() {
