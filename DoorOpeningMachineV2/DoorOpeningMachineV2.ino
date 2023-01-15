@@ -3,6 +3,8 @@
 #include <WiFiClient.h>
 #include <ESP8266mDNS.h>
 #include <LiquidCrystal.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 #include "index.h"
 
 const char* ssid = "VTOW-Res308-2.4ghz";
@@ -22,6 +24,16 @@ LiquidCrystal lcd(1, 3, 2, 13, 12, 14);
 
 //Create web server instance
 ESP8266WebServer server(80);
+
+String sendDoorStatus(){
+  String status;
+  if(!isOpen){
+    status = "Open";
+  } else if (isOpen){
+    status = "Closed";
+  }
+  return status;
+}
 
 void cycleDoor(int direction){
   digitalWrite(dirPin, direction);
@@ -45,7 +57,7 @@ void handleRoot(){
 }
 
 void doorCycleOnClick(){
-  server.send(200, "text/html", root); //Send root page to the client.
+  server.send(200, "text/html", root);
   lcd.clear(); lcd.print("Opening Door"); //Display that the door is opening on the LCD Screen.
   if(!isOpen){                            //Check if the door is already open.
     cycleDoor(1);                            //Run the openDoor() method to open the door.
@@ -63,7 +75,7 @@ void doorCycleOnClick(){
 }
 
 void doorHoldOpenOnClick(){
-  server.send(200, "text/html", root);
+  server.send(200, "text/html", root + "<p style=\"text-align: center; font-size: 3vh;\">Door Status: "+sendDoorStatus()+"</p>");
   lcd.clear(); lcd.print("Opening Door"); //Display that the door is opening.
   if(!isOpen){                            //Check if the door is alreay open.
     cycleDoor(1);                           //Run the openDoor() method to open the door.
@@ -105,6 +117,49 @@ void setup() {
   lcd.print("IP: ");
   lcd.print(WiFi.localIP());
 
+  /*
+  New OTA feature  
+  */
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else {  // U_FS
+      type = "filesystem";
+    }
+
+    // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+    Serial.println("Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    }
+  });
+  ArduinoOTA.begin();
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  /*
+  End of OTA Feature.
+  */
+
+
   MDNS.begin("R308", WiFi.localIP());
 
   server.on("/", handleRoot);
@@ -117,6 +172,7 @@ void setup() {
 }
   
 void loop() {  
+  ArduinoOTA.handle();
   MDNS.update();
   server.handleClient();
 }
