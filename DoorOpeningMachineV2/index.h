@@ -7,7 +7,7 @@ const char Main_Page[] PROGMEM = R"===(
         <style>
             body {
                 text-align: center;
-                font-family: "Calibri body", sans-serif;
+                font-family: "Fonseca Rounded", "Comic sans ms", sans-serif;
                 background-color: rgb(112, 142, 214);
                 color: white;
             }
@@ -19,9 +19,10 @@ const char Main_Page[] PROGMEM = R"===(
                 margin-right: auto;
             }
             button {
+                box-shadow: burlywood 0px 30px 60px -12px inset, burlywood 0px 30px 60px -12px inset, burlywood 0px -50px 36px -28px inset;
                 color: white;
                 border: burlywood 5px solid;
-                border-radius: 20px;
+                border-radius: 25px;
                 background-color:rgb(112, 142, 214);
                 padding: 10vh 5vw 10vh 5vw;
                 display: inline-block;
