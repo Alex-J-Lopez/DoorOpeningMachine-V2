@@ -1,7 +1,7 @@
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
+#include <WiFi.h>
+#include <WebServer.h>
 #include <WiFiClient.h>
-#include <ESP8266mDNS.h>
+#include <ESPmDNS.h>
 #include <LiquidCrystal.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -16,14 +16,14 @@ const int stepsToLatch = 241;
 boolean isOpen = false;
 
 //Pin Declaration
-const int dirPin = 16; //Pin for setting direction
-const int stepPin = 5; //Pin for sending single step signal
+const int dirPin = 23; //Pin for setting direction
+const int stepPin = 22; //Pin for sending single step signal
 
 //LCD object instance and pins
-LiquidCrystal lcd(1, 3, 2, 13, 12, 14);
+LiquidCrystal lcd(15, 2, 21, 16, 17, 5);
 
 //Create web server instance
-ESP8266WebServer server(80);
+WebServer server(80);
 
 String sendDoorStatus(){
   String status;
@@ -160,19 +160,17 @@ void setup() {
   */
 
 
-  MDNS.begin("R308", WiFi.localIP());
+  MDNS.begin("R308");
 
   server.on("/", handleRoot);
   server.on("/doorCycle", doorCycleOnClick);
   server.on("/holdOpen", doorHoldOpenOnClick);
   server.begin();
-  MDNS.addService("http", "tcp", 80);
   lcd.clear(); lcd.print("R308.local");
   lcd.setCursor(0, 1); lcd.print(WiFi.localIP());
 }
   
 void loop() {  
   ArduinoOTA.handle();
-  MDNS.update();
   server.handleClient();
 }
